@@ -15,7 +15,6 @@ def transcribe_gcs(gcs_uri):
 
     audio = types.RecognitionAudio(uri=gcs_uri)
     config = types.RecognitionConfig(
-        # sample_rate_hertz=16000,
         sample_rate_hertz=32000,
         encoding=enums.RecognitionConfig.AudioEncoding.FLAC,
         enable_speaker_diarization=True,
@@ -31,8 +30,6 @@ def transcribe_gcs(gcs_uri):
     today = d.strftime("%Y%m%d-%H%M%S")
     fout = codecs.open('output{}.txt'.format(today), 'a', 'shift_jis')
 
-    print(operationResult)
-
     speaker_1_words = ""
     speaker_1_s = float(0)
     speaker_2_words = ""
@@ -40,14 +37,10 @@ def transcribe_gcs(gcs_uri):
 
     for word in operationResult.results[-1].alternatives[0].words:
         tmp_word = u'{}'.format(word.word.split("|")[0])
-
         start_time = float(word.start_time.seconds) + float(word.start_time.nanos) / 1000 / 1000 / 1000
         end_time = float(word.end_time.seconds) + float(word.end_time.nanos) / 1000 / 1000 / 1000
 
-        print(start_time)
-        print(end_time)
         s = end_time - start_time
-        print(s)
 
         if word.speaker_tag == 1:
             speaker_1_s += s
@@ -56,28 +49,16 @@ def transcribe_gcs(gcs_uri):
             speaker_2_s += s
             speaker_2_words += tmp_word
 
-    fout.write("speaker_1: \n")
-    fout.write(speaker_1_words)
+    fout.write('speaker_1: \n{}\n'.format(speaker_1_words))
+    fout.write('s: {}\n'.format(speaker_1_s))
 
-    fout.write("\n")
-
-    fout.write("s: ")
-    fout.write(speaker_1_s)
-
-    fout.write("\n")
-
-    fout.write("speaker_2: \n")
-    fout.write(speaker_2_words)
-
-    fout.write("\n")
-
-    fout.write("s: ")
-    fout.write(speaker_2_s)
-    #fout.write(u'{}\n'.format(operationResult.results[-1].alternatives.words))
+    fout.write('speaker_2: \n{}\n'.format(speaker_2_words))
+    fout.write('s: {}\n'.format(speaker_2_s))
 
     #for result in operationResult.results:
     #  for alternative in result.alternatives:
     #      fout.write(u'{}\n'.format(alternative.transcript))
+
     fout.close()
 
 if __name__ == '__main__':
